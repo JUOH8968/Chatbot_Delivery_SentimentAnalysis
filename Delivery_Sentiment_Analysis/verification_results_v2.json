@@ -1,0 +1,37 @@
+[
+  {
+    "text": "생각보다는 별로였어요. 나쁘진 않은데 가격 대비 아쉽네요",
+    "label": null,
+    "analysis": {
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/analyze (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=8000): Failed to establish a new connection: [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다\"))"
+    }
+  },
+  {
+    "text": "배달이 진짜 빨라요!",
+    "label": null,
+    "analysis": {
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/analyze (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=8000): Failed to establish a new connection: [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다\"))"
+    }
+  },
+  {
+    "text": "맛은 있는데 가격이 너무 비싸요",
+    "label": null,
+    "analysis": {
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/analyze (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=8000): Failed to establish a new connection: [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다\"))"
+    }
+  },
+  {
+    "text": "위생 상태가 좀 지저분하네요",
+    "label": null,
+    "analysis": {
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/analyze (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=8000): Failed to establish a new connection: [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다\"))"
+    }
+  },
+  {
+    "text": "맛있게 잘 먹었습니다!",
+    "label": null,
+    "analysis": {
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/analyze (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=8000): Failed to establish a new connection: [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다\"))"
+    }
+  }
+]

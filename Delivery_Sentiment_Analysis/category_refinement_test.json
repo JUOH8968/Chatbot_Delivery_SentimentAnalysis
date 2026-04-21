@@ -1,0 +1,34 @@
+{
+  "test1": {
+    "score": 98.9,
+    "reasoning": "가격/가성비에서 아쉬움이 보여 종합적으로 부정 분석되었습니다.",
+    "category_advice": [],
+    "suggested_reply": "",
+    "taste_score": 0,
+    "taste_eval": "맛에 대한 평가를 분석 중입니다.",
+    "delivery_score": 0,
+    "delivery_eval": "배달 서비스에 대한 분석입니다.",
+    "etc_score": 0,
+    "etc_eval": "가격이나 양(가성비) 면에서 아쉬운 피드백이 확인됩니다.",
+    "has_taste": false,
+    "has_delivery": false,
+    "has_etc": true,
+    "final_label": "부정"
+  },
+  "test2": {
+    "score": 94.9,
+    "reasoning": "맛에서 만족도가 높고 가격/가성비에서 아쉬움이 보여 종합적으로 애매 분석되었습니다.",
+    "category_advice": [],
+    "suggested_reply": "",
+    "taste_score": 5,
+    "taste_eval": "맛에 대한 평가를 분석 중입니다.",
+    "delivery_score": 0,
+    "delivery_eval": "배달 서비스에 대한 분석입니다.",
+    "etc_score": 0,
+    "etc_eval": "가격이나 양(가성비) 면에서 아쉬운 피드백이 확인됩니다.",
+    "has_taste": true,
+    "has_delivery": false,
+    "has_etc": true,
+    "final_label": "애매"
+  }
+}

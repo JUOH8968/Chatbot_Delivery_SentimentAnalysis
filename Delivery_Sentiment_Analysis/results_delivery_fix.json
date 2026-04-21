@@ -1,0 +1,19 @@
+{
+  "score": 99.3,
+  "reasoning": "분석 결과 부족한 부분에서 아쉬움이 포착되었습니다. 전문 컨설팅 가이드를 확인하여 개선 계획을 세우시길 권장합니다.",
+  "category_advice": [],
+  "suggested_reply": "리뷰 남겨주셔서 감사합니다. 불편을 겪으신 부족한 항목은 저희 매장에서 가장 중요하게 생각하는 부분인데 실망시켜 드려 죄송하며, 즉시 시정 조치하겠습니다.",
+  "taste_score": 5,
+  "taste_eval": "음식의 맛에 대해 만족하셨습니다.",
+  "delivery_score": 0,
+  "delivery_eval": "배달 서비스에 대한 분석입니다.",
+  "hygiene_score": 3,
+  "hygiene_eval": "위생 상태를 체크 중입니다.",
+  "etc_score": 0,
+  "etc_eval": "",
+  "has_taste": true,
+  "has_delivery": true,
+  "has_hygiene": false,
+  "has_etc": false,
+  "final_label": "부정"
+}
