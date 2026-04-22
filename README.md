@@ -69,5 +69,5 @@
 ## 사용예시
 [일반 사용자] https://github.com/user-attachments/assets/26db9280-df9c-4e4a-96fb-d7b3285395b2
 
-![가게 사장님] https://github.com/user-attachments/assets/6903d4ee-6a42-40d7-ad6e-971e23000c28
+[가게 사장님] https://github.com/user-attachments/assets/6903d4ee-6a42-40d7-ad6e-971e23000c28
 
