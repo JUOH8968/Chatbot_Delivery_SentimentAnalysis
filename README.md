@@ -66,13 +66,6 @@
 
 ---
 
-## 사용예시
-[일반 사용자] [https://github.com/user-attachments/assets/26db9280-df9c-4e4a-96fb-d7b3285395b2](https://github.com/user-attachments/assets/56f0066b-24a8-481b-8c63-ec9c39a66b6e)
-
-[가게 사장님] [https://github.com/user-attachments/assets/6903d4ee-6a42-40d7-ad6e-971e23000c28](https://github.com/user-attachments/assets/7be9a7ea-44a7-4527-85f7-87cbed106ce8)
-
----
-
 ## 👥 사용자별 핵심 가치
 
 ### 🛒 일반 사용자 (소비자)
@@ -99,4 +92,10 @@
 - ✍️ 답글 자동 초안 생성 : 긍정·부정 리뷰에 맞는 답글 초안을 자동으로 만들어 시간을 절약합니다.
 - 📈 개선 효과 데이터 확인 : 월별 긍정 비율 추이로 운영 변화가 실제 리뷰에 반영되는지 확인합니다.
 
+---
+
+## 사용예시
+[일반 사용자] [https://github.com/user-attachments/assets/26db9280-df9c-4e4a-96fb-d7b3285395b2](https://github.com/user-attachments/assets/56f0066b-24a8-481b-8c63-ec9c39a66b6e)
+
+[가게 사장님] [https://github.com/user-attachments/assets/6903d4ee-6a42-40d7-ad6e-971e23000c28](https://github.com/user-attachments/assets/7be9a7ea-44a7-4527-85f7-87cbed106ce8)
 
