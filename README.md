@@ -64,8 +64,10 @@
 - **정확도**: 실제 배달 데이터 기반 검증 시 약 **95% 이상**의 정밀도 기록.
 - **처리 능력**: 배치 분석 스크립트를 통해 1,000건 이상의 리뷰를 수초 내에 분석하고 CSV 파일로 결과 서빙 가능
 
+---
+
 ## 사용예시
-![일반 사용자] https://github.com/user-attachments/assets/26db9280-df9c-4e4a-96fb-d7b3285395b2
+[일반 사용자] https://github.com/user-attachments/assets/26db9280-df9c-4e4a-96fb-d7b3285395b2
 
 ![가게 사장님] https://github.com/user-attachments/assets/6903d4ee-6a42-40d7-ad6e-971e23000c28
 
