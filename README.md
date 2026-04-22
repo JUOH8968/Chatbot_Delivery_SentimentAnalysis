@@ -64,5 +64,14 @@
 - 정확도: 실제 배달 데이터 기반 검증 시 약 95% 이상의 정밀도 기록.
 - 처리 능력: 배치 분석 스크립트를 통해 1,000건 이상의 리뷰를 수초 내에 분석하고 CSV 파일로 결과 서빙 가능.
 
+---
+## 정량적 지표 시각화
+https://chatbot-delivery-sentiment-analysis-9ce8ge1p6.vercel.app/
+
+---
+## 사용예시 
+일반(사용자) : ![일반사용자 예시](https://github.com/user-attachments/assets/46190f9c-3c84-48d6-9fff-b9f486562e48)
+
+가게 사장님 : ![가게 사장님 예시 ](https://github.com/user-attachments/assets/0aa2cd5c-1101-42a9-a6f7-352c50342608)
 
 
