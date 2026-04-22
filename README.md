@@ -70,9 +70,8 @@ https://chatbot-delivery-sentiment-analysis-9ce8ge1p6.vercel.app/
 
 ---
 ## 사용예시 
-일반(사용자) : ![일반사용자 예시](https://github.com/user-attachments/assets/46190f9c-3c84-48d6-9fff-b9f486562e48)
+![일반사용자 예시](https://github.com/user-attachments/assets/46190f9c-3c84-48d6-9fff-b9f486562e48)
 
-
-가게 사장님 : ![가게 사장님 예시 ](https://github.com/user-attachments/assets/0aa2cd5c-1101-42a9-a6f7-352c50342608)
+![가게 사장님 예시 ](https://github.com/user-attachments/assets/0aa2cd5c-1101-42a9-a6f7-352c50342608)
 
 
