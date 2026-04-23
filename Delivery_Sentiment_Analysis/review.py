@@ -181,21 +181,35 @@ def roberta_analysis_node(state: GraphState):
             neg_count += 1
             analysis["etc_score"] = 0
 
-    # --- 사용자 요청 기반 최종 판정 로직 (맛, 배달, 가격/양 중심) ---
-    mentioned_cats = [has_taste, has_delivery, has_price]
-    # 카테고리가 아예 없는 경우 -> 모델 감성 직접 활용 (뉘앙스 판단)
+    
+    # --- 최종 판정 로직 ---
+    # 1. 지배적 판정 (카테고리 언급이 있는 경우)
+    if pos_count >= 2:
+        analysis["final_label"] = "긍정"
+    elif neg_count >= 2:
+        analysis["final_label"] = "부정"
+    # 2. 애매함 판정 (긍정-부정 균형 혹은 중립 표현 존재)
+    elif (pos_count == neg_count and pos_count > 0) or neu_count >= 1:
+        analysis["final_label"] = "애매"
+    # 3. 단일 판정
+    elif pos_count == 1 and neg_count == 0:
+        analysis["final_label"] = "긍정"
+    elif neg_count == 1 and pos_count == 0:
+        analysis["final_label"] = "부정"
+    # 4. 카테고리가 아예 없는 경우 -> 모델 감성 직접 활용 (뉘앙스 판단)
     elif not any([has_taste, has_delivery, has_price]):
-            # 1. '보통/무난' 등 중립 키워드가 있으면 '애매'로 우선 판정
-            if any(kw in review_text for kw in indifferent_keywords):
-                analysis["final_label"] = "애매"
-            # 2. 확실하게 긍정적일 때만 '긍정' (임계치 0.6)
-            elif model_is_pos and score > 0.6:
-                analysis["final_label"] = "긍정"
-            # 3. 확실하게 부정적일 때만 '부정' (임계치 0.6)
-            elif label == 'LABEL_0' and score > 0.6:
-                analysis["final_label"] = "부정"
-            else:
-                analysis["final_label"] = "애매"
+        # 무난함/중립 키워드가 포함된 경우 모델 스코어보다 키워드 우선
+        if any(kw in review_text for kw in indifferent_keywords):
+            analysis["final_label"] = "애매"
+        elif model_is_pos and score > 0.6:
+            analysis["final_label"] = "긍정"
+        elif label == 'LABEL_0' and score > 0.6:
+            analysis["final_label"] = "부정"
+        else:
+            analysis["final_label"] = "애매"
+    else:
+        analysis["final_label"] = "애매"
+    return {"label": label, "score": score, "analysis": analysis}
 
 def generate_rule_based_reasoning(state: GraphState):
     """API 실패 시 작동하는 규칙 기반 문장 생성기 (항목별 분리 및 답글 초안 생성 포함)"""
