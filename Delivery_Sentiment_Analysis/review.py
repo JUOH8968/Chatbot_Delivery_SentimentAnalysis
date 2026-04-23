@@ -183,26 +183,19 @@ def roberta_analysis_node(state: GraphState):
 
     # --- 사용자 요청 기반 최종 판정 로직 (맛, 배달, 가격/양 중심) ---
     mentioned_cats = [has_taste, has_delivery, has_price]
-    if not any(mentioned_cats):
-        analysis["final_label"] = "정보 없음"
-    else:
-        # 1. 지배적 판정 (2개 이상)
-        if pos_count >= 2:
-            analysis["final_label"] = "긍정"
-        elif neg_count >= 2:
-            analysis["final_label"] = "부정"
-        # 2. 애매함 판정 (긍정-부정 균형 혹은 중립 표현 존재)
-        elif pos_count == neg_count or neu_count >= 1:
-            analysis["final_label"] = "애매"
-        # 3. 단일 판정
-        elif pos_count == 1 and neg_count == 0:
-            analysis["final_label"] = "긍정"
-        elif neg_count == 1 and pos_count == 0:
-            analysis["final_label"] = "부정"
-        else:
-            analysis["final_label"] = "애매"
-
-    return {"label": label, "score": score, "analysis": analysis}
+    # 카테고리가 아예 없는 경우 -> 모델 감성 직접 활용 (뉘앙스 판단)
+    elif not any([has_taste, has_delivery, has_price]):
+            # 1. '보통/무난' 등 중립 키워드가 있으면 '애매'로 우선 판정
+            if any(kw in review_text for kw in indifferent_keywords):
+                analysis["final_label"] = "애매"
+            # 2. 확실하게 긍정적일 때만 '긍정' (임계치 0.6)
+            elif model_is_pos and score > 0.6:
+                analysis["final_label"] = "긍정"
+            # 3. 확실하게 부정적일 때만 '부정' (임계치 0.6)
+            elif label == 'LABEL_0' and score > 0.6:
+                analysis["final_label"] = "부정"
+            else:
+                analysis["final_label"] = "애매"
 
 def generate_rule_based_reasoning(state: GraphState):
     """API 실패 시 작동하는 규칙 기반 문장 생성기 (항목별 분리 및 답글 초안 생성 포함)"""
@@ -260,21 +253,28 @@ def generate_rule_based_reasoning(state: GraphState):
 
     if user_type == "owner":
         if final_label == "정보 없음":
-            reasoning = "분석 가능한 카테고리(맛, 배달 ,가격/양)가 포함되지 않은 리뷰입니다. 서비스 개선을 위한 구체적인 피드백이 있는지 확인해 보세요."
+            reasoning = "분석 가능한 카테고리(맛, 배달, 가격/양)가 포함되지 않았으며, 전체적인 뉘앙스 파악도 어려운 리뷰입니다."
             suggested_reply = "소중한 리뷰 감사드립니다. 고객님의 의견을 바탕으로 더욱 발전하는 매장이 되겠습니다."
         elif final_label == "긍정":
-            reasoning = "고객님께서 전반적인 서비스에 매우 만족하고 계십니다. 긍정적인 브랜드 이미지를 유지하기 위해 현재의 품질을 지속해 주세요."
+            if not pros:
+                reasoning = "전체적인 문맥에서 고객님의 높은 만족도가 느껴집니다. 특별한 카테고리 언급은 없으나 긍정적인 경험을 하신 것으로 분석됩니다."
+            else:
+                reasoning = "고객님께서 전반적인 서비스에 매우 만족하고 계십니다. 긍정적인 브랜드 이미지를 유지하기 위해 현재의 품질을 지속해 주세요."
             suggested_reply = random.choice(POS_REPLY_TEMPLATES)
         else:
             for con in cons:
                 if con == "맛": category_advice.append({"category": "맛", "text": random.choice(TASTE_ADVICE)})
                 elif con == "배달": category_advice.append({"category": "배달", "text": random.choice(DELIVERY_ADVICE)})
-                elif con == "가격/가성비": category_advice.append({"category": "가격/가성비", "text": "원가 절감보다는 품질 유지와 적절한 할인 프로모션 구성을 검토해보세요."})
+                elif con == "가격/양": category_advice.append({"category": "가격/양", "text": "원가 절감보다는 품질 유지와 적절한 할인 프로모션 구성을 검토해보세요."})
             
-            keyword_str = ", ".join(cons) if cons else "부족한"
-            reasoning = f"분석 결과 {keyword_str} 부분에서 아쉬움이 포착되었습니다. 전문 컨설팅 가이드를 확인하여 개선 계획을 세우시길 권장합니다."
+            if not cons:
+                reasoning = f"전반적인 문맥에서 고객님의 아쉬움이 느껴집니다. 특별한 카테고리 언급은 없으나 서비스 전반에 대한 재점검이 권장되는 {final_label} 상황입니다."
+            else:
+                keyword_str = ", ".join(cons)
+                reasoning = f"분석 결과 {keyword_str} 부분에서 아쉬움이 포착되었습니다. 전문 컨설팅 가이드를 확인하여 개선 계획을 세우시길 권장합니다."
+            
             template = random.choice(NEG_REPLY_TEMPLATES)
-            suggested_reply = template.format(keyword_str=keyword_str)
+            suggested_reply = template.format(keyword_str=", ".join(cons) if cons else "부족한")
     else:
         if not pros and not cons:
             reasoning = f"문맥 분석 결과 최종적으로 {final_label} 판정을 내렸습니다."
