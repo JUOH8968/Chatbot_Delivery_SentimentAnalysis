@@ -1,6 +1,5 @@
 # 🏗️ 배달 음식 리뷰 AI 감성 분석 에이전트 시스템 아키텍처
 
-본 문서는 `my-chatbot` 프로젝트의 백엔드 파이프라인(`review.py`)을 구성하는 **LangChain 및 LangGraph** 기반의 지능형 에이전트 구조를 상세히 설명합니다.
 
 ---
 
@@ -45,7 +44,7 @@ graph TD
 
 | 계층 | 기술 스택 | 주요 특징 |
 | :--- | :--- | :--- |
-| **Orchestration** | **LangChain / LangGraph** | 상태 기반 워크플로우 관리 및 에이전트 노드 분리 |
+| **Orchestration** | **LangGraph** | 상태 기반 워크플로우 관리 및 에이전트 노드 분리 |
 | **AI Model** | **Transformers (RoBERTa)** | 배달 도메인 특화 텍스트 분류 (정확도 95%) |
 | **Reasoning** | **Hybrid Rule Engine** | AI 블랙박스 문제를 보완하는 논리적 추론 및 보정 |
 | **API Layer** | **FastAPI** | 고성능 비동기 API 서빙 및 Pydantic 데이터 검증 |
