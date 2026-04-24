@@ -1,6 +1,6 @@
-# 🍔 배달 음식 리뷰 AI 감성 분석 에이전트 (My-Chatbot)
+# 🍔 배달 음식 리뷰 AI 감성 분석 에이전트
 
-본 프로젝트는 국내 배달 도메인에 특화된 RoBERTa 모델과 LangChain/LangGraph 프레임워크를 결합하여, 리뷰의 감성을 다각도로 분석하고 최적의 응대 전략을 제시하는 지능형 하이브리드 에이전트 시스템입니다.
+본 프로젝트는 국내 배달 도메인에 특화된 RoBERTa 모델과 LangGraph 프레임워크를 결합하여, 리뷰의 감성을 다각도로 분석하고 최적의 응대 전략을 제시하는 지능형 하이브리드 에이전트 시스템입니다.
 
 ---
 
@@ -36,7 +36,7 @@
 ## 🛠 사용 기술 스택 (Tech Stack)
 
 ### 🧠 AI & Agent Engineering
-- LangChain / LangGraph: 분석 프로세스 오케스트레이션 및 상태 관리
+- LangGraph: 분석 프로세스 오케스트레이션 및 상태 관리
 - Transformers (RoBERTa): 배달 도메인 파인튜닝 감성 분석 모델
 - Prompt Engineering: 결과 해석 및 답글 생성을 위한 논리 설계
 
@@ -54,7 +54,7 @@
 1. Input: 사용자가 웹(React)에서 리뷰 텍스트 입력 및 역할(소비자/사장님) 선택.
 2. LangGraph Workflow:
    - Step 1 (RoBERTa Analysis): 파인튜닝된 딥러닝 모델이 텍스트의 미세한 뉘앙스 분석 및 스코어링.
-   - Step 2 (Reasoning & Advice): 에이전트가 항목별(맛/배달/가격/양) 키워드를 추출하고 점수를 보정하며 페르소나별 조언 생성.
+   - Step 2 (Reasoning & Advice): 에이전트가 항목별(맛/배달/가격 및 양) 키워드를 추출하고 점수를 보정하며 페르소나별 조언 생성.
    - Step 3 (Reply Generation): '사장님' 모드일 경우 리뷰 문맥에 최적화된 답글 템플릿을 조합하여 초안 생성.
 3. Output: 스파이더 차트와 함께 직관적인 분석 결과 대시보드 리턴.
 
