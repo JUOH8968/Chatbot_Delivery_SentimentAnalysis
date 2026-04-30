@@ -43,8 +43,8 @@ class GraphState(TypedDict):
     category_advice: List[Dict[str, str]] # [{category: "맛", text: "..."}, ...]
     suggested_reply: str
 
-def roberta_analysis_node(state: GraphState):
-    """RoBERTa 모델을 통한 1차 감성 분석 및 휴리스틱 로직"""
+def feature_extraction_node(state: GraphState):
+    """RoBERTa 모델 구동 및 키워드 기반 카테고리별 초기 점수 산출"""
     review_text = state["content"]
     result = classifier(review_text)[0]
     label = result['label']
@@ -74,19 +74,23 @@ def roberta_analysis_node(state: GraphState):
     # 전역 부정 탐지 (어떤 카테고리에도 명시되지 않은 일반적인 불만)
     has_general_neg = any(kw in review_text for kw in common_bad_keywords)
     
+    # 위생 치명타 감지
+    has_hygiene = any(kw in review_text for kw in ['머리카락', '벌레', '이물질', '위생 관리', '위생 상태가', '위생이 별로', '위생이 안', '위생 좀'])
+    
     analysis = {
-        "taste_score": -1, # 미정 상태로 시작
+        "taste_score": -1,
         "taste_eval": "맛에 대한 평가를 분석 중입니다.",
         "delivery_score": -1,
         "delivery_eval": "배달 서비스에 대한 분석입니다.",
         "etc_score": -1, "etc_eval": "",
         "has_taste": has_taste, "has_delivery": has_delivery,
-        "has_etc": False
+        "has_etc": False,
+        "has_hygiene": has_hygiene,
+        "has_indifferent": has_indifferent
     }
 
     # 세부 분석 - 배달
     if has_delivery:
-        # 우선순위: 명확한 긍정 -> 명확한 부정 -> 중립
         if any(good in review_text for good in ['빨라', '빨랐', '빠름', '신속', '엄청 빠', '정시', '빨라요', '빨라 직접', '빠르', '빨리', '빨리와서', '빠르게', '깔끔', '꼼꼼', '튼튼', '정성', '만족']):
             analysis["delivery_score"] = 5
             analysis["delivery_eval"] = "신속한 배달 혹은 꼼꼼한 포장에 만족하셨습니다."
@@ -99,17 +103,13 @@ def roberta_analysis_node(state: GraphState):
 
     # 세부 분석 - 맛 / 음식 품질
     if has_taste:
-        # 이물질/심각한 위생 문제는 맛/품질에서 가장 심각한 부정으로 처리
-        if any(critical in review_text for critical in ['머리카락', '벌레', '이물질']):
+        if has_hygiene:
             analysis["taste_score"] = 0
-            analysis["taste_eval"] = "음식에서 이물질이 발견되어 매우 부정적인 피드백이 확인됩니다."
-        elif any(bad_hygiene in review_text for bad_hygiene in ['위생 관리', '위생 상태가', '위생이 별로', '위생이 안', '위생 좀']):
-            analysis["taste_score"] = 0
-            analysis["taste_eval"] = "위생 상태에 대한 부정적인 지적이 확인됩니다."
+            analysis["taste_eval"] = "음식에서 이물질이 발견되거나 심각한 위생 관련 문제가 감지되었습니다."
         elif any(good in review_text for good in ['맛있', '맛나', '최고','맛없지 않', '맛도 있', '맛 좋', '좋아', '있고', '믿고', '믿음', '위생적', '깨끗']):
              analysis["taste_score"] = 5
              analysis["taste_eval"] = "음식의 맛과 품질(위생 포함)에 대해 매우 만족하셨습니다."
-        elif any(bad in review_text for bad in (['맛없', '맛도 없', '맛고'] + common_bad_keywords)): # '맛고' 오타 대비
+        elif any(bad in review_text for bad in (['맛없', '맛도 없', '맛고'] + common_bad_keywords)):
             analysis["taste_score"] = 0
             analysis["taste_eval"] = "맛에 대한 아쉬운 피드백이 확인됩니다."
         elif any(neu in review_text for neu in indifferent_keywords):
@@ -129,19 +129,47 @@ def roberta_analysis_node(state: GraphState):
             analysis["etc_score"] = 3
             analysis["etc_eval"] = "가격이나 양이 대체로 무난한 수준입니다."
 
-    # 최종 판정 로직
+    return {"label": label, "score": score, "analysis": analysis}
+
+def hygiene_node(state: GraphState):
+    """위생 치명타 이슈 전담 노드 (최우선 부정 처리)"""
+    analysis = state["analysis"]
+    analysis["taste_score"] = 0
+    analysis["taste_eval"] = "음식 위생(이물질 등)에 대한 심각한 지적이 확인됩니다."
+    analysis["final_label"] = "부정"
+    return {"analysis": analysis}
+
+def fast_track_node(state: GraphState):
+    """확신도 0.8 이상 노드 (RoBERTa 결과 전면 수용)"""
+    analysis = state["analysis"]
+    label = state["label"]
+    
+    if label == 'LABEL_1':
+        analysis["final_label"] = "긍정"
+    else:
+        analysis["final_label"] = "부정"
+        
+    model_score_val = 5 if label == 'LABEL_1' else 0
+    if analysis["has_taste"] and analysis["taste_score"] == -1: analysis["taste_score"] = model_score_val
+    if analysis["has_delivery"] and analysis["delivery_score"] == -1: analysis["delivery_score"] = model_score_val
+    if analysis.get("has_etc") and analysis["etc_score"] == -1: analysis["etc_score"] = model_score_val
+    
+    return {"analysis": analysis}
+
+def secondary_validation_node(state: GraphState):
+    """확신도 0.6 ~ 0.8 사이 구간의 2차 휴리스틱 검증 노드"""
+    analysis = state["analysis"]
+    label = state["label"]
+    score = state["score"]
+    model_is_pos = (label == 'LABEL_1' and score > 0.5)
+    
     pos_count = 0
     neg_count = 0
     neu_count = 0
-    
-    # 모델 감성 판별
-    model_is_pos = (label == 'LABEL_1' and score > 0.5)
 
-    # 항목별 판정 함수 (폴백 로직 및 중립 처리 포함)
     def determine_category_status(has_cat, score_val):
         nonlocal pos_count, neg_count, neu_count
         if has_cat:
-            # 키워드로 판정되지 않은 경우 모델 감성 사용 (사용자 요청: 부정이 없으면 긍정)
             final_val = score_val
             if final_val == -1:
                 final_val = 5 if model_is_pos else 0
@@ -155,22 +183,16 @@ def roberta_analysis_node(state: GraphState):
             else: 
                 neg_count += 1
                 return 0
-        else:
-            return 0
+        return 0
 
-    if not has_price:
+    if not analysis.get("has_etc", False):
         analysis["etc_score"] = 0
-    
-    # 맛 판정
-    analysis["taste_score"] = determine_category_status(has_taste, analysis["taste_score"])
-    # 배달 판정
-    analysis["delivery_score"] = determine_category_status(has_delivery, analysis["delivery_score"])
-    
-    # 가격/기타 판정 (최종 판정 카운트에 포함)
-    if has_price:
-        if analysis["etc_score"] == -1:
-            analysis["etc_score"] = 5 if model_is_pos else 0
         
+    analysis["taste_score"] = determine_category_status(analysis.get("has_taste", False), analysis.get("taste_score", -1))
+    analysis["delivery_score"] = determine_category_status(analysis.get("has_delivery", False), analysis.get("delivery_score", -1))
+    
+    if analysis.get("has_etc", False):
+        if analysis["etc_score"] == -1: analysis["etc_score"] = 5 if model_is_pos else 0
         if analysis["etc_score"] >= 4: 
             pos_count += 1
             analysis["etc_score"] = 5
@@ -181,35 +203,54 @@ def roberta_analysis_node(state: GraphState):
             neg_count += 1
             analysis["etc_score"] = 0
 
-    
-    # --- 최종 판정 로직 ---
-    # 1. 지배적 판정 (카테고리 언급이 있는 경우)
     if pos_count >= 2:
         analysis["final_label"] = "긍정"
     elif neg_count >= 2:
         analysis["final_label"] = "부정"
-    # 2. 애매함 판정 (긍정-부정 균형 혹은 중립 표현 존재)
     elif (pos_count == neg_count and pos_count > 0) or neu_count >= 1:
         analysis["final_label"] = "애매"
-    # 3. 단일 판정
     elif pos_count == 1 and neg_count == 0:
         analysis["final_label"] = "긍정"
     elif neg_count == 1 and pos_count == 0:
         analysis["final_label"] = "부정"
-    # 4. 카테고리가 아예 없는 경우 -> 모델 감성 직접 활용 (뉘앙스 판단)
-    elif not any([has_taste, has_delivery, has_price]):
-        # 무난함/중립 키워드가 포함된 경우 모델 스코어보다 키워드 우선
-        if any(kw in review_text for kw in indifferent_keywords):
+    elif not any([analysis.get("has_taste"), analysis.get("has_delivery"), analysis.get("has_etc")]):
+        if analysis.get("has_indifferent"):
             analysis["final_label"] = "애매"
-        elif model_is_pos and score > 0.6:
+        elif model_is_pos and score > 0.6: 
             analysis["final_label"] = "긍정"
-        elif label == 'LABEL_0' and score > 0.6:
+        elif not model_is_pos and score > 0.6: 
             analysis["final_label"] = "부정"
         else:
             analysis["final_label"] = "애매"
     else:
         analysis["final_label"] = "애매"
-    return {"label": label, "score": score, "analysis": analysis}
+
+    return {"analysis": analysis}
+
+def ambiguous_node(state: GraphState):
+    """확신도 0.6 미만 노드 (강제 애매 판정)"""
+    analysis = state["analysis"]
+    analysis["final_label"] = "애매"
+    
+    if analysis.get("has_taste") and analysis.get("taste_score") == -1: analysis["taste_score"] = 3
+    if analysis.get("has_delivery") and analysis.get("delivery_score") == -1: analysis["delivery_score"] = 3
+    if analysis.get("has_etc") and analysis.get("etc_score") == -1: analysis["etc_score"] = 3
+    
+    return {"analysis": analysis}
+
+def route_review(state: GraphState) -> str:
+    """확신도 및 위생 키워드에 따른 신뢰도 기반 조건부 라우팅"""
+    score = state["score"]
+    has_hygiene = state["analysis"].get("has_hygiene", False)
+    
+    if has_hygiene:
+        return "hygiene_node"
+    elif score >= 0.8:
+        return "fast_track_node"
+    elif score < 0.6:
+        return "ambiguous_node"
+    else:
+        return "secondary_validation_node"
 
 def generate_rule_based_reasoning(state: GraphState):
     """API 실패 시 작동하는 규칙 기반 문장 생성기 (항목별 분리 및 답글 초안 생성 포함)"""
@@ -243,8 +284,8 @@ def generate_rule_based_reasoning(state: GraphState):
         if analysis["delivery_score"] >= 5: pros.append("배달")
         elif analysis["delivery_score"] <= 1: cons.append("배달")
     if analysis.get("has_etc"):
-        if analysis["etc_score"] >= 5: pros.append("가격/가성비")
-        elif analysis["etc_score"] <= 1: cons.append("가격/가성비")
+        if analysis["etc_score"] >= 5: pros.append("가격/양")
+        elif analysis["etc_score"] <= 1: cons.append("가격/양")
 
     category_advice = []
     suggested_reply = ""
@@ -310,11 +351,32 @@ def reasoning_node(state: GraphState):
 
 # 그래프 구성
 workflow = StateGraph(GraphState)
-workflow.add_node("roberta", roberta_analysis_node)
+workflow.add_node("feature_extraction", feature_extraction_node)
+workflow.add_node("hygiene_node", hygiene_node)
+workflow.add_node("fast_track_node", fast_track_node)
+workflow.add_node("secondary_validation_node", secondary_validation_node)
+workflow.add_node("ambiguous_node", ambiguous_node)
 workflow.add_node("reasoning", reasoning_node)
 
-workflow.set_entry_point("roberta")
-workflow.add_edge("roberta", "reasoning")
+workflow.set_entry_point("feature_extraction")
+
+# 조건부 라우팅 엣지 추가
+workflow.add_conditional_edges(
+    "feature_extraction",
+    route_review,
+    {
+        "hygiene_node": "hygiene_node",
+        "fast_track_node": "fast_track_node",
+        "secondary_validation_node": "secondary_validation_node",
+        "ambiguous_node": "ambiguous_node"
+    }
+)
+
+# 모든 판정 노드는 최종적으로 reasoning_node로 수렴
+workflow.add_edge("hygiene_node", "reasoning")
+workflow.add_edge("fast_track_node", "reasoning")
+workflow.add_edge("secondary_validation_node", "reasoning")
+workflow.add_edge("ambiguous_node", "reasoning")
 workflow.add_edge("reasoning", END)
 
 # 컴파일
